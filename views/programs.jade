@@ -1,0 +1,15 @@
+extends layout
+
+block content
+  h3.page-title= title
+  div.list-group
+      a(href="/programs/stringmatch").list-group-item
+          h4.list-group-item-heading String match
+          span &nbsp;
+          span.list-group-item-text uses random mutations
+
+block footercrumbs
+    ul.breadcrumb
+        li 
+            a(href='/') Menu
+        li.active Programs

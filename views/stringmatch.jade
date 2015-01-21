@@ -1,0 +1,165 @@
+extends layout
+
+block content
+  h3.page-title= title
+  .row
+    .col-sm-10
+      .form-group
+        input(data-bind="value: tomatch", placeholder="Enter text to match").form-control.input-lg
+      .form-group
+        button(data-bind="click: startGen").btn.btn-primary.btn-block.btn-large.jumbo-btn Start evolve alg      
+  .row
+    h3 Results
+      .col-sm-10
+        <!-- ko foreach: results -->
+        p(style="color: #FEFEFE; font-weight: 100;") 
+          span Generation:&nbsp;
+          span(data-bind="text: generation")
+          span &nbsp;Text:&nbsp;
+          span(data-bind="text: code").text-primary
+          span &nbsp;Cost:&nbsp;
+          span(data-bind="text: cost")
+        <!-- /ko -->
+
+block scripts
+  script(type='text/javascript').
+      var Chromosome = function(code) {
+        if (code) {
+          this.code = code; 
+        }
+
+        this.cost = 9999;
+      };
+
+      Chromosome.prototype.code = '';
+      Chromosome.prototype.random = function(length) {
+        while (length--) {
+          this.code += String.fromCharCode(Math.floor(Math.random()*255));
+        }
+      };
+
+      Chromosome.prototype.calcCost = function(compareTo) {
+        var total = 0;
+        for (var i = 0; i < this.code.length; i++) {
+          total += ((this.code.charCodeAt(i) - compareTo.charCodeAt(i)) * (this.code.charCodeAt(i) - compareTo.charCodeAt(i)));
+        }
+
+        this.cost = total;
+      };
+
+      Chromosome.prototype.mate = function(chromosome) {
+        var pivot = Math.round(this.code.length / 2) - 1;
+
+        var child1 = this.code.substr(0, pivot) + chromosome.code.substr(pivot);
+        var child2 = chromosome.code.substr(0, pivot) + this.code.substr(pivot);
+
+        return [new Chromosome(child1), new Chromosome(child2)];
+      };
+
+      Chromosome.prototype.mutate = function(chance) {
+        if (Math.random() > chance) return;
+
+        var index = Math.floor(Math.random() * this.code.length);
+        var upOrDown = Math.random() <= 0.5 ? -1 : 1;
+        var newChar = String.fromCharCode(this.code.charCodeAt(index) + upOrDown);
+        var newString = '';
+
+        for (var i = 0; i < this.code.length; i++) {
+          if (i == index) {
+            newString += newChar;
+          } else {
+            newString += this.code[i];
+          }
+        }
+        this.code = newString;
+      };
+
+      var Population = function(goal, size) {
+        this.members = [];
+        this.goal = goal;
+        this.generationNumber = 0;
+        while (size--) {
+          var chromosome = new Chromosome();
+          chromosome.random(this.goal.length);
+          this.members.push(chromosome);
+        }
+      };
+
+      Population.prototype.sort = function() {
+        this.members.sort(function(a, b) {
+          return a.cost - b.cost;
+        });
+      };
+
+      Population.prototype.display = function() {
+        return { 
+          "generation": this.generationNumber,
+          "code": this.members[0].code,
+          "cost": this.members[0].cost
+        };
+      }
+
+      Population.prototype.generation = function(displayHandler) {
+        for (var i = 0; i < this.members.length; i++) {
+          this.members[i].calcCost(this.goal);
+        }
+
+        this.sort();
+
+        if (displayHandler) {
+          displayHandler(this.display());
+        }
+
+        var children = this.members[0].mate(this.members[1]);
+        this.members.splice(this.members.length - 2, 2, children[0], children[1]);
+
+        for (var i = 0; i < this.members.length; i++) {
+          this.members[i].mutate(0.5);
+          this.members[i].calcCost(this.goal);
+          if (this.members[i].code == this.goal) {
+            this.sort();
+
+            if (displayHandler) {
+              displayHandler(this.display());
+            }
+            
+            return true;
+          }   
+        }
+
+        this.generationNumber++;
+        var scope = this;
+        setTimeout(function() { scope.generation(displayHandler); }, 20);
+      };      
+
+      var Page = function() {
+        var self = this;
+
+        self.tomatch = ko.observable();
+
+        self.results = ko.observableArray();
+
+        self.display = function(result) {        
+          self.results.unshift(result);          
+        }
+
+        self.startGen = function() {
+          if (self.tomatch()) {
+            var population = new Population(self.tomatch(), 20);
+            population.generation(self.display);            
+          }          
+        }
+      }
+
+      $(document).ready(function() {
+        var model = new Page();
+        ko.applyBindings(model);
+      });
+
+block footercrumbs
+    ul.breadcrumb
+        li 
+            a(href='/') Menu
+        li 
+            a(href='/programs') Programs
+        li.active String match

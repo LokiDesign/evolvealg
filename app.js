@@ -5,11 +5,7 @@
 
 var express = require('express'),
  routes = require('./routes'),
- scores = require('./routes/scores'),
- leagues = require('./routes/leagues'),
- rightarm = require('./routes/rightarm'),
- franchises = require('./routes/rightarm/franchises'),
- schedule = require('./routes/schedule'),
+ programs = require('./routes/programs');
  http = require('http'),
  path = require('path');
 
@@ -31,22 +27,8 @@ if ('development' == app.get('env')) {
   app.use(express.errorHandler());
 }
 app.all('/', routes.index);
-app.all('/scores', scores.index);
-app.all('/leagues', leagues.index);
-app.all('/rightarm', rightarm.index);
-app.all('/rightarm/franchises', franchises.index);
-app.all('/schedule', schedule.index);
-
-app.get('/getLeague/28655', jsonData({
-    host: 'football32.myfantasyleague.com',
-    path: '/2013/export?TYPE=league&L=28655&W=&JSON=1'
-}));
-
-app.get('/getSchedule', jsonData({
-    host: 'football.myfantasyleague.com',
-    path: '/2013/export?TYPE=nflSchedule&W=1&JSON=1'
-}));
-
+app.all('/programs', programs.index);
+app.all('/programs/stringmatch', programs.stringmatch);
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));
