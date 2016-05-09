@@ -1,4 +1,4 @@
-#football
+#Evolve Alg
 
 Evolvealg web application intended for mobile devices.
 
