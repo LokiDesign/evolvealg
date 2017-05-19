@@ -1,3 +1,3 @@
 exports.index = function(req, res){
-  res.render('index', { title: 'Evolvealg' });
+  res.render('pages/index', { title: 'Evolvealg' });
 };
