@@ -1,5 +1,12 @@
 const path = require('path');
 const webpack = require('webpack');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const HtmlWebpackPluginConfig = new HtmlWebpackPlugin({
+  template: '../views/index.tpl.html',
+  filename: '../views/index.html',
+  inject: 'body'
+})
+
 module.exports = {
   context: path.resolve(__dirname, './src'),
   entry: {
@@ -8,10 +15,11 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, './dist'),
     filename: '[name].bundle.js',
-    publicPath: '/assets',
+    publicPath: '/dist'
   },
   devServer: {
-    contentBase: path.resolve(__dirname, './src'),  // New
+    publicPath: '/dist',
+    contentBase: path.resolve(__dirname, './views'),
   },
   module: {
     rules: [
@@ -34,6 +42,14 @@ module.exports = {
           loader: 'babel-loader',
           options: { presets: ['es2015'] },
         }],
+      },
+      {
+        test: /\.jsx$/,
+        exclude: [/node_modules/],
+        use: [{
+          loader: 'babel-loader',
+          options: { presets: ['es2015'] },
+        }],
       }
     ]
   },
@@ -43,5 +59,6 @@ module.exports = {
      filename: 'vendor.js',
      minChunks: 2,
    }),
+   HtmlWebpackPluginConfig
  ],
 };
